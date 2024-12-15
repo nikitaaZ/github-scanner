@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "start": "tsx --env-file=.env src/server.ts"
+  },
+  "dependencies": {
+    "apollo-server": "^3.13.0",
+    "axios": "^1.7.9",
+    "graphql": "^16.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
