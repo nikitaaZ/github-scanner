@@ -1,46 +1,23 @@
-import axios, { AxiosError } from "axios";
-import { RepositoriesResponse } from "./resolvers/getRepositories/types";
-import { IncomingMessage } from "http";
+import { Sema } from "async-sema";
+import { Context } from "./types";
+import { GraphQLFieldResolver, GraphQLResolveInfo } from "graphql";
 
-export const checkGithubToken = (token?: string) => {
-  if (!token) {
-    throw new Error("GitHub token is required");
-  }
-};
+export const withSema =
+  <ParentType = unknown, ArgsType = Record<string, any>, ReturnType = unknown>(
+    fetchSemaphore: Sema,
+    resolver: GraphQLFieldResolver<ParentType, Context, ArgsType>
+  ) =>
+  async (
+    parent: ParentType,
+    variables: ArgsType,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): Promise<ReturnType> => {
+    await fetchSemaphore.acquire();
 
-export const authContext = ({ req }: { req: IncomingMessage }) => {
-  const githubToken = req.headers.authorization?.replace("Bearer ", "");
-  return { githubToken };
-};
-
-export const fetchFromGithub = async (
-  query: string,
-  variables: any,
-  githubToken: string
-) => {
-  if (!process.env.GITHUB_API) {
-    throw new Error("Github API link is not defined");
-  }
-
-  try {
-    const response = await axios.post<{ data: RepositoriesResponse }>(
-      process.env.GITHUB_API,
-      { query, variables },
-      {
-        headers: {
-          Authorization: `Bearer ${githubToken}`,
-        },
-      }
-    );
-
-    return response.data.data;
-  } catch (error: unknown) {
-    if (error instanceof AxiosError) {
-      console.error(error?.response?.data || error?.message);
-      throw new Error("Failed to fetch data from GitHub");
-    } else {
-      console.error(error);
-      throw new Error("Unexpected error appeared");
+    try {
+      return (await resolver(parent, variables, context, info)) as ReturnType;
+    } finally {
+      fetchSemaphore.release();
     }
-  }
-};
+  };

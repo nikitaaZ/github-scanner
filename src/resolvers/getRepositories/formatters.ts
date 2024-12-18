@@ -1,4 +1,4 @@
-import { RepositoryNode } from "./types";
+import { RepositoryNode } from "../../types";
 
 export const formatRepositories = (repos: RepositoryNode[]) => {
   return repos.map(({ name, owner, diskUsage }) => ({

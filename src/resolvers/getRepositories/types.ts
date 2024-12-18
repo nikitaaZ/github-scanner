@@ -1,4 +1,5 @@
 import { gql } from "apollo-server";
+import { RepositoryNode } from "../../types";
 
 export const repositoriesTypeDefs = gql`
   type Repository {
@@ -8,22 +9,22 @@ export const repositoriesTypeDefs = gql`
   }
 
   extend type Query {
-    userRepositories(username: String!): [Repository]
+    getRepositories(username: String!): [Repository]
   }
 `;
 
-export type RepositoryNode = {
-  name: string;
-  owner: {
-    login: string;
-  };
-  diskUsage: number;
-};
-
 export type RepositoriesResponse = {
-  user: {
-    repositories: {
-      nodes: RepositoryNode[];
+  data: {
+    user: {
+      repositories: {
+        nodes: RepositoryNode[];
+        pageInfo: PageInfo;
+      };
     };
   };
+};
+
+export type PageInfo = {
+  hasNextPage: boolean;
+  endCursor: string;
 };
